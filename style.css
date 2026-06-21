@@ -417,6 +417,19 @@ p {
   color: inherit;
   cursor: pointer;
   text-align: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.media-trigger img {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
 }
 
 .media-trigger::after {
@@ -441,7 +454,7 @@ p {
   color: white;
   background: rgba(4, 6, 10, 0.46);
   opacity: 0;
-  pointer-events: none;
+  pointer-events: auto;
   transition: opacity 180ms ease;
 }
 

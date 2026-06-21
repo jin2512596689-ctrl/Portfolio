@@ -269,13 +269,34 @@ function openBackup(projectKey) {
   window.open(project.backupUrl, "_blank", "noopener,noreferrer");
 }
 
+document.querySelectorAll('.media-trigger[data-action="play"]').forEach((trigger) => {
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const project = projects[trigger.dataset.project];
+    if (!project || project.type === "image") return;
+    openModal(trigger.dataset.project);
+  });
+});
+
+document.querySelectorAll('.image-preview-trigger[data-action="play"]').forEach((trigger) => {
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const project = projects[trigger.dataset.project];
+    if (!project || project.type !== "image") return;
+    openModal(trigger.dataset.project);
+  });
+});
+
 document.addEventListener("click", (event) => {
-  const actionButton = event.target.closest("[data-action]");
+  const actionButton = event.target.closest('[data-action="backup"]');
   if (actionButton) {
-    const action = actionButton.dataset.action;
-    const projectKey = actionButton.dataset.project;
-    if (action === "play") openModal(projectKey);
-    if (action === "backup") openBackup(projectKey);
+    event.preventDefault();
+    event.stopPropagation();
+    openBackup(actionButton.dataset.project);
   }
 
   if (event.target.closest("[data-close-modal]")) {
