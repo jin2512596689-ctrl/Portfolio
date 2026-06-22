@@ -4,7 +4,7 @@ const projects = {
     title: "《额济纳·一眼千年》",
     embedUrl: "",
     videoUrl: "https://portfolio-2026-1438272750.cos.ap-nanjing.myqcloud.com/%E9%A2%9D%E6%B5%8E%E7%BA%B3.mp4",
-    backupUrl: ""
+    backupUrl: "https://www.xinpianchang.com/a13725069?from=private_pwd&pwd=lwxm"
   },
   uma: {
     type: "iframe",
@@ -87,7 +87,7 @@ function createPlaceholderMessage(title, message) {
   return wrapper;
 }
 
-function openModal(projectKey) {
+function openModal(projectKey, videoUrl = "") {
   const project = projects[projectKey];
   if (!project) return;
 
@@ -98,7 +98,7 @@ function openModal(projectKey) {
   if (project.type === "iframe") {
     renderIframeProject(project);
   } else if (project.type === "localVideo" || project.type === "remoteVideo") {
-    renderLocalVideo(project);
+    renderLocalVideo(project, videoUrl);
   } else if (project.type === "qr") {
     renderQrProject(project);
   } else if (project.type === "image") {
@@ -131,14 +131,15 @@ function renderIframeProject(project) {
   modalBody.append(media);
 }
 
-function renderLocalVideo(project) {
+function renderLocalVideo(project, videoUrlOverride = "") {
+  const videoUrl = videoUrlOverride.trim() || project.videoUrl.trim();
   const missingMessage = project.missingMessage
     || (project.type === "remoteVideo" ? "播放链接待替换" : "视频文件待替换");
   const loadErrorDetail = project.type === "remoteVideo"
     ? "当前远程视频无法加载，请检查链接或云存储访问权限。"
     : "当前视频不存在或无法加载，请替换 assets 中的对应文件。";
 
-  if (!project.videoUrl.trim()) {
+  if (!videoUrl) {
     const hint = project.type === "remoteVideo"
       ? "请在 script.js 的 projects 配置中填写远程 MP4 播放链接。"
       : "请在 script.js 的 projects 配置中填写本地视频路径。";
@@ -150,19 +151,13 @@ function renderLocalVideo(project) {
   media.className = "modal-media";
 
   const video = document.createElement("video");
+  video.id = "modalVideo";
   video.controls = true;
   video.preload = "none";
   video.playsInline = true;
+  video.autoplay = false;
   video.setAttribute("aria-label", `${project.title} 视频`);
   if (project.poster) video.poster = project.poster;
-
-  const source = document.createElement("source");
-  source.addEventListener("error", () => {
-    media.replaceChildren(createPlaceholderMessage(missingMessage, loadErrorDetail));
-  }, { once: true });
-  source.src = project.videoUrl;
-  source.type = "video/mp4";
-  video.append(source);
 
   video.addEventListener("error", () => {
     media.replaceChildren(createPlaceholderMessage(missingMessage, loadErrorDetail));
@@ -170,6 +165,7 @@ function renderLocalVideo(project) {
 
   media.append(video);
   modalBody.append(media);
+  video.src = videoUrl;
   video.load();
 }
 
@@ -276,7 +272,10 @@ document.querySelectorAll('.media-trigger[data-action="play"]').forEach((trigger
 
     const project = projects[trigger.dataset.project];
     if (!project || project.type === "image") return;
-    openModal(trigger.dataset.project);
+    const deferredVideoUrl = project.type === "remoteVideo"
+      ? (trigger.dataset.video || "")
+      : "";
+    openModal(trigger.dataset.project, deferredVideoUrl);
   });
 });
 
